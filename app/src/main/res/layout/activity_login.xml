@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/main"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context=".LoginActivity">
+
+        <EditText
+            android:id="@+id/userPasswordInputText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:hint="输入密码"
+            android:drawableLeft="@drawable/ic_password"
+            android:drawablePadding="8dp"
+            android:inputType="textPassword"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <EditText
+            android:id="@+id/usernameInputText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:ems="10"
+            android:inputType="text"
+            android:hint="输入用户名"
+            android:drawableLeft="@drawable/ic_avatar"
+            android:drawablePadding="8dp"
+
+            app:layout_constraintBottom_toTopOf="@+id/userPasswordInputText"
+            app:layout_constraintEnd_toEndOf="@+id/userPasswordInputText"
+            app:layout_constraintStart_toStartOf="@+id/userPasswordInputText" />
+
+        <Button
+            android:id="@+id/loginRequestButton"
+            android:layout_width="250dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="15dp"
+            android:text="登录"
+            app:layout_constraintEnd_toEndOf="@+id/userPasswordInputText"
+            app:layout_constraintStart_toStartOf="@+id/userPasswordInputText"
+            app:layout_constraintTop_toBottomOf="@+id/userPasswordInputText" />
+
+        <Button
+            android:id="@+id/turnToRegisterbutton"
+            android:layout_width="250dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="注册"
+            app:backgroundTint="@color/purple_500"
+            app:layout_constraintEnd_toEndOf="@+id/loginRequestButton"
+            app:layout_constraintStart_toStartOf="@+id/loginRequestButton"
+            app:layout_constraintTop_toBottomOf="@+id/loginRequestButton" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>
