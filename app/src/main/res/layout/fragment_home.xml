@@ -1,120 +1,187 @@
 <?xml version="1.0" encoding="utf-8"?>
-
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/light_gray_background">
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="0dp"
         android:layout_height="70dp"
         android:background="@color/purple_500"
+
         android:elevation="4dp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
-        <TextView
+            <!-- 标题文本 -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="我的个人主页"
+                android:textColor="@android:color/white"
+                android:textSize="22sp"
+
+                android:textStyle="bold"
+                android:shadowColor="#3F51B5"
+                android:shadowDx="1"
+                android:shadowDy="1"
+                android:shadowRadius="2"
+                android:gravity="center"
+                android:layout_marginTop="30dp"/>
+
+        <!-- 底部装饰线 -->
+        <View
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="我的个人主页"
-            android:textColor="@android:color/white"
-            android:textSize="22sp"
-            android:gravity="center"
-            android:layout_marginTop="30dp"/>
+            android:layout_height="1dp"
+            android:background="@color/purple_700"
+            android:layout_gravity="bottom"/>
+
     </androidx.appcompat.widget.Toolbar>
 
-    <androidx.constraintlayout.widget.ConstraintLayout
+
+    <!-- 主体内容容器 -->
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:padding="40dp">
-    <!-- 头像区域 -->
-    <ImageView
-        android:id="@+id/avatar_image"
-        android:layout_marginTop="100dp"
-        android:layout_width="150dp"
-        android:layout_height="150dp"
-        android:src="@drawable/default_avatar"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        app:layout_constraintTop_toBottomOf="@id/toolbar"
+        app:layout_constraintBottom_toBottomOf="parent">
 
-    <!-- 用户信息区域 -->
-    <TextView
-        android:id="@+id/username_text"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="用户名："
-        android:textSize="20sp"
-        app:layout_constraintTop_toBottomOf="@id/avatar_image"
-        app:layout_constraintStart_toStartOf="parent"
-        android:layout_marginTop="24dp"/>
-
-    <TextView
-        android:id="@+id/username_value_text"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textColor="@color/deep_grey"
-        android:textSize="20sp"
-        app:layout_constraintStart_toEndOf="@id/username_text"
-        app:layout_constraintTop_toTopOf="@id/username_text"/>
-
-    <TextView
-        android:id="@+id/contact_info_text"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="联系方式："
-        android:textSize="20sp"
-        app:layout_constraintTop_toBottomOf="@id/username_text"
-        app:layout_constraintStart_toStartOf="parent"
-        android:layout_marginTop="25dp"/>
-
-    <TextView
-        android:id="@+id/contact_info_text_view"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textColor="@color/deep_grey"
-        android:textSize="20sp"
-        app:layout_constraintStart_toEndOf="@id/contact_info_text"
-        app:layout_constraintTop_toTopOf="@id/contact_info_text"/>
-
-    <!-- 操作按钮区域 -->
-    <Button
-        android:id="@+id/modify_info_button"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="修改信息"
-        android:textSize="17dp"
-        app:layout_constraintTop_toBottomOf="@id/contact_info_text_view"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/modify_password_button"
-        android:layout_marginTop="32dp"/>
-
-    <Button
-        android:id="@+id/modify_password_button"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="修改密码"
-        android:textSize="17dp"
-        android:layout_marginTop="5dp"
-        app:layout_constraintTop_toBottomOf="@id/modify_info_button"
-        app:layout_constraintStart_toEndOf="@id/modify_info_button"
-        app:layout_constraintEnd_toEndOf="parent"/>
-
-        <Button
-            android:id="@+id/exit_login_button"
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="退出登录"
-            android:textSize="17dp"
-            android:layout_marginTop="50dp"
-            app:layout_constraintTop_toBottomOf="@id/modify_password_button"
-            app:layout_constraintStart_toEndOf="@id/modify_password_button"
-            app:layout_constraintEnd_toEndOf="parent"/>
+            android:padding="24dp">
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+            <!-- 头像区域升级 -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/avatar_card"
+                android:layout_width="140dp"
+                android:layout_height="140dp"
+                app:cardCornerRadius="60dp"
+                app:cardElevation="8dp"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                android:layout_marginTop="32dp">
+
+                <ImageView
+                    android:id="@+id/avatar_image"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/default_avatar"
+                   />
+            </androidx.cardview.widget.CardView>
+
+            <!-- 用户信息区域升级 -->
+            <LinearLayout
+                android:id="@+id/user_info_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:background="@drawable/user_info_bg"
+                app:layout_constraintTop_toBottomOf="@id/avatar_card"
+                android:layout_marginTop="40dp">
+
+                <!-- 用户名信息行 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="12dp">
+
+                    <TextView
+                        android:id="@+id/username_text"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="用户名："
+                        android:textSize="18sp"
+                        android:textColor="@color/text_primary"
+                        android:textStyle="bold"/>
+
+                    <TextView
+                        android:id="@+id/username_value_text"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="18sp"
+                        android:layout_marginStart="8dp"/>
+                </LinearLayout>
+
+                <!-- 联系方式信息行 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical">
+
+                    <TextView
+                        android:id="@+id/contact_info_text"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="联系方式："
+                        android:textSize="18sp"
+                        android:textColor="@color/text_primary"
+                        android:textStyle="bold"/>
+
+                    <TextView
+                        android:id="@+id/contact_info_text_view"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="18sp"
+                        android:layout_marginStart="8dp"/>
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- 操作按钮区域升级 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                app:layout_constraintTop_toBottomOf="@id/user_info_container"
+                android:layout_marginTop="48dp"
+                android:paddingHorizontal="24dp">
+
+                <!-- 修改信息按钮 -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/modify_info_button"
+                    style="@style/ProfileActionButton"
+                    android:layout_marginBottom="16dp"
+                    android:text="编辑个人信息"
+                    app:iconTint="@android:color/white"/>
+
+                <!-- 修改密码按钮 -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/modify_password_button"
+                    style="@style/ProfileActionButton"
+                    android:layout_marginBottom="16dp"
+                    android:text="修改登录密码"
+                    app:iconTint="@android:color/white"/>
+
+            </LinearLayout>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <!-- 底部退出按钮 -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/exit_login_button"
+        style="@style/ProfileActionButton"
+        android:layout_width="240dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="90dp"
+        android:backgroundTint="@color/warning_red"
+        android:text="退出当前账号"
+        android:textColor="@android:color/white"
+        app:iconTint="@android:color/white"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

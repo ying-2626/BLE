@@ -59,7 +59,6 @@ public class BLEManager  {
     private BluetoothManager bluetoothManager;
     private BluetoothAdapter bluetooth4Adapter;
     private BluetoothGatt mBluetoothGatt;  //当前连接的gatt
-    private String serviceUUID,readUUID,writeUUID;
     //获取硬件传来的信息
     private BluetoothGattService bluetoothGattService;   //服务
     private BluetoothGattCharacteristic readCharacteristic;  //读特征
@@ -72,6 +71,7 @@ public class BLEManager  {
     private BluetoothLeScanner bluetoothLeScanner;
     private ScanSettings scanSettings;
     private boolean isScanning = false;
+
     private List<OnBleConnectListener> listeners = new ArrayList<>();
     public BLEManager() {
     }
@@ -92,6 +92,10 @@ public class BLEManager  {
             }
             return bluetooth4Adapter != null;
         }
+    }
+
+    public BluetoothDevice getCurConnDevice() {
+        return curConnDevice; // 使用现有curConnDevice字段
     }
 
     // 单例获取方法
@@ -118,6 +122,8 @@ public class BLEManager  {
         }
     }
 
+
+
     ////////////////////////////////////  扫描设备  ///////////////////////////////////////////////
     //扫描设备回调
     // 新增设备类型校验
@@ -130,7 +136,7 @@ public class BLEManager  {
 
             int rssi = result.getRssi();
             ScanRecord scanRecord = result.getScanRecord();
-            List<ParcelUuid> uuids = scanRecord.getServiceUuids();
+            List<ParcelUuid> serviceUuids = scanRecord.getServiceUuids();
 try {
     // 添加详细日志
     /* Log.d("BLE-Scan", "发现设备: "
@@ -141,11 +147,11 @@ try {
 */
     if (device.getType() == BluetoothDevice.DEVICE_TYPE_LE ||
             device.getType() == BluetoothDevice.DEVICE_TYPE_DUAL) {
-        BLEDevice bleDevice = new BLEDevice(device, result.getRssi());
+        BLEDevice bleDevice = new BLEDevice(device, rssi);
         parseServiceUuids(result, bleDevice);
 
         if (scanRecord != null) {
-            bleDevice.setServiceUuids(scanRecord.getServiceUuids());
+            bleDevice.setServiceUuids(serviceUuids);// 存储UUID到设备对象
         }
         if (onDeviceSearchListener != null) {
             onDeviceSearchListener.onDeviceFound(bleDevice);
@@ -632,43 +638,63 @@ try {
             return false;
         }
 
+        // 打印所有服务UUID
+        List<BluetoothGattService> services = bluetoothGatt.getServices();
+        Log.d(TAG, "发现服务数量: " + services.size());
+        for (BluetoothGattService service : services) {
+            Log.d(TAG, "Service UUID: " + service.getUuid().toString());
+
+            // 遍历特征
+            for (BluetoothGattCharacteristic characteristic : service.getCharacteristics()) {
+                Log.d(TAG, "  Characteristic UUID: " + characteristic.getUuid()
+                        + ", 属性: " + characteristic.getProperties());
+            }
+        }
+        //清空特征缓存
+        readCharacteristic = null;
+        writeCharacteristic = null;
+
+        // 遍历所有服务
         for (BluetoothGattService service : bluetoothGatt.getServices()) {
-//            Log.d(TAG, "service = " + service.getUuid().toString());
-            if (service.getUuid().toString().equals(serviceUUID)) {
-                bluetoothGattService = service;
+            // 遍历服务中的特征
+            for (BluetoothGattCharacteristic characteristic : service.getCharacteristics()) {
+                int properties = characteristic.getProperties();
+
+                // 识别读特征（支持NOTIFY或READ）
+                if ((properties & BluetoothGattCharacteristic.PROPERTY_NOTIFY) != 0) {
+                    if (readCharacteristic == null) {
+                        readCharacteristic = characteristic;
+                        enableNotification(true, bluetoothGatt, readCharacteristic); // 启用通知
+                    }
+                }
+                else if ((properties & BluetoothGattCharacteristic.PROPERTY_READ) != 0) {
+                    if (readCharacteristic == null) {
+                        readCharacteristic = characteristic;
+                    }
+                }
+
+                // 识别写特征（支持WRITE或WRITE_NO_RESPONSE）
+                if ((properties & (BluetoothGattCharacteristic.PROPERTY_WRITE |
+                        BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE)) != 0) {
+                    if (writeCharacteristic == null) {
+                        writeCharacteristic = characteristic;
+                    }
+                }
             }
         }
-        //通过上面方法获取bluetoothGattService
-//        bluetoothGattService = bleManager.getBluetoothGattService(bluetoothGatt,ConsData.MY_BLUETOOTH4_UUID);
-        if (bluetoothGattService == null) {
-            //找不到该服务就立即断开连接
-            Log.e(TAG, "setupService()-->bluetoothGattService == null");
-            return false;
-        }
-        Log.d(TAG, "setupService()-->bluetoothGattService = " + bluetoothGattService.toString());
 
-        if(readUUID == null || writeUUID == null){
-            Log.e(TAG, "setupService()-->readUUID == null || writeUUID == null");
-            return false;
-        }
-
-        for (BluetoothGattCharacteristic characteristic : bluetoothGattService.getCharacteristics()) {
-            if (characteristic.getUuid().toString().equals(readUUID)) {  //读特征
-                readCharacteristic = characteristic;
-            } else if (characteristic.getUuid().toString().equals(writeUUID)) {  //写特征
-                writeCharacteristic = characteristic;
-            }
-        }
+        // 检查特征是否找到
         if (readCharacteristic == null) {
-            Log.e(TAG, "setupService()-->readCharacteristic == null");
+            Log.e(TAG, "读特征未找到");
             return false;
         }
         if (writeCharacteristic == null) {
-            Log.e(TAG, "setupService()-->writeCharacteristic == null");
+            Log.e(TAG, "写特征未找到");
             return false;
         }
-        //打开读通知
-        enableNotification(true, bluetoothGatt, readCharacteristic);
+
+        Log.d(TAG, "动态发现特征成功: \n读特征=" + readCharacteristic.getUuid() +
+                "\n写特征=" + writeCharacteristic.getUuid());
 
         //重点中重点，需要重新设置
         List<BluetoothGattDescriptor> descriptors = writeCharacteristic.getDescriptors();
@@ -708,9 +734,25 @@ try {
             Log.e(TAG,"enableNotification-->characteristic == null");
             return;
         }
-        //这一步必须要有，否则接收不到通知
+        // 1. 启用特征通知（系统层）
         gatt.setCharacteristicNotification(characteristic,enable);
-    }
+        // 2. 配置描述符（关键步骤）
+        BluetoothGattDescriptor descriptor = characteristic.getDescriptor(
+                UUID.fromString("00002902-0000-1000-8000-00805f9b34fb") // 标准CCCD UUID
+        );
+
+        if (descriptor != null) {
+            // 设置通知类型：NOTIFY 或 INDICATE
+            byte[] value = enable ?
+                    BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE :
+                    BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE;
+
+            descriptor.setValue(value);
+            gatt.writeDescriptor(descriptor); // 异步操作，结果在onDescriptorWrite回调
+        } else {
+            Log.e(TAG, "无法找到通知描述符（CCCD）");
+        }
+}
 
 
     ///////////////////////////////////  发送数据  ///////////////////////////////////////////////

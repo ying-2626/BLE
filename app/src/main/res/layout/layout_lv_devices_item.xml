@@ -1,40 +1,73 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<androidx.cardview.widget.CardView
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:padding="16dp">
+    android:layout_marginHorizontal="8dp"
+    android:layout_marginVertical="4dp"
+    app:cardElevation="2dp"
+    app:cardCornerRadius="8dp">
 
-    <TextView
-        android:id="@+id/tv_device_name"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="16sp"
-        android:textStyle="bold"/>
+        android:orientation="vertical"
+        android:padding="16dp">
 
-    <TextView
-        android:id="@+id/tv_device_address"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textColor="#666"
-        android:textSize="14sp"/>
+        <!-- 设备名称 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="8dp">
 
-    <TextView
-        android:id="@+id/tv_device_rssi"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textColor="#666"
-        android:textSize="14sp"/>
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_bluetooth" />
 
-    <!-- 新增UUID显示视图 -->
-    <TextView
-        android:id="@+id/tv_device_uuid"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textColor="#FF5722"
-        android:textSize="12sp"
-        android:maxLines="3"
-        android:ellipsize="end"/>
+            <TextView
+                android:id="@+id/tv_device_name"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="#212121"
+                android:layout_marginStart="12dp"
+                android:layout_marginBottom="5dp"/>
+        </LinearLayout>
 
-</LinearLayout>
+
+        <!-- 设备详情 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- 信号强度 -->
+            <TextView
+                android:id="@+id/tv_device_rssi"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="@style/TextAppearance.DeviceInfoLabel"/>
+
+            <TextView
+                android:id="@+id/tv_device_address"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+              />
+
+            <TextView
+                android:id="@+id/tv_device_uuid"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone"/>
+
+        </LinearLayout>
+
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

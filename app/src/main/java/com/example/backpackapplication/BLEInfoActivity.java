@@ -6,6 +6,7 @@ import android.app.AlertDialog;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
+import android.bluetooth.BluetoothGattService;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -17,6 +18,9 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.backpackapplication.ble.BLEManager;
 import com.example.backpackapplication.ble.OnBleConnectListener;
+
+import java.util.List;
+import java.util.UUID;
 
 public class BLEInfoActivity extends AppCompatActivity {
 
@@ -56,7 +60,17 @@ public class BLEInfoActivity extends AppCompatActivity {
         // 其他需要处理的方法保持空实现
         @Override public void onConnecting(BluetoothGatt gatt, BluetoothDevice device) {}
         @Override public void onDisConnecting(BluetoothGatt gatt, BluetoothDevice device) {}
-        @Override public void onServiceDiscoverySucceed(BluetoothGatt gatt, BluetoothDevice device, int status) {}
+        @Override public void onServiceDiscoverySucceed(BluetoothGatt gatt, BluetoothDevice device, int status) {
+            List<BluetoothGattService> services = gatt.getServices();
+            for (BluetoothGattService service : services) {
+                UUID serviceUuid = service.getUuid(); // 获取服务UUID
+                List<BluetoothGattCharacteristic> characteristics = service.getCharacteristics();
+                for (BluetoothGattCharacteristic ch : characteristics) {
+                    UUID charUuid = ch.getUuid(); // 获取特征UUID
+                    int properties = ch.getProperties(); // 读写权限
+                }
+            }
+        }
         @Override public void onServiceDiscoveryFailed(BluetoothGatt gatt, BluetoothDevice device, String failMsg) {}
         @Override public void onReceiveMessage(BluetoothGatt gatt, BluetoothDevice device, BluetoothGattCharacteristic characteristic, byte[] msg) {}
         @Override public void onReceiveError(String errorMsg) {}
@@ -76,8 +90,29 @@ public class BLEInfoActivity extends AppCompatActivity {
         setupBLEManager();
         parseIntentData();
         updateUI();
+        //初始化时检查连接状态
+        refreshButtonState();
         setupConnectButton();
     }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // 每次返回页面时检查连接状态
+        refreshButtonState();
+    }
+
+    private void refreshButtonState() {
+        // 获取当前页面对应的设备
+        BluetoothDevice currentDevice = bleDevice.getBluetoothDevice();
+
+        // 通过BLEManager现有方法判断
+        boolean isConnected = bleManager.isConnected() &&
+                currentDevice.equals(bleManager.getCurConnDevice());
+
+        updateConnectionState(isConnected);
+    }
+
 
     private void initViews() {
         tvDeviceName = findViewById(R.id.tv_device_name);

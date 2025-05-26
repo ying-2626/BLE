@@ -79,6 +79,7 @@ public class HomeFragment extends Fragment {
                         Toast.makeText(requireContext(),
                                 "服务端错误("+response.getCode()+")："+response.getMessage(),
                                 Toast.LENGTH_LONG).show();
+                        exitLogin();
                     }
                 });
             } catch (Exception e) {

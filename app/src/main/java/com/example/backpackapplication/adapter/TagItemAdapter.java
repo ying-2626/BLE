@@ -73,8 +73,8 @@ public class TagItemAdapter extends RecyclerView.Adapter<TagItemAdapter.TagViewH
         RfidTag tag = data.get(position);
         // 添加空值检查
         String info = "标签ID: " + (tag.getRfidTagId() != null ? tag.getRfidTagId() : "N/A") +
-                "\n物品名称: " + (tag.getItemName() != null ? tag.getItemName() : "未命名")+
-                "\n物品状态："+(tag.getRfidTagStatus() == 1 ? "在包内" : "已取出");
+                "\n物品名: " + (tag.getItemName() != null ? tag.getItemName() : "未命名")+
+                "\n状态："+(tag.getRfidTagStatus() == 1 ? "在包内" : "已取出");
 
         holder.binding.tagText.setText(info);
 
