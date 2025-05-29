@@ -63,4 +63,42 @@
         android:layout_alignParentBottom="true"
         android:text="连接设备"/>
 
+    <!-- 新增：发送消息输入框和按钮 -->
+    <LinearLayout
+        android:id="@+id/ll_send_area"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_above="@id/btn_connect"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp">
+
+        <EditText
+            android:id="@+id/et_send_msg"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="输入要发送的内容"
+            android:textSize="15sp"
+            android:padding="8dp"/>
+
+        <Button
+            android:id="@+id/btn_send"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="发送"
+            android:layout_marginLeft="8dp"/>
+    </LinearLayout>
+
+    <!-- 新增：接收/发送结果显示 -->
+    <TextView
+        android:id="@+id/tv_msg_result"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="消息结果显示区"
+        android:textColor="@color/colorPrimary"
+        android:layout_above="@id/ll_send_area"
+        android:padding="8dp"
+        android:textSize="14sp"/>
+
 </RelativeLayout>

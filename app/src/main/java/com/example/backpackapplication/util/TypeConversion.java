@@ -217,4 +217,18 @@ public class TypeConversion {
         return hexStrBuilder.toString();
     }
 
+    /**
+     * 将字符串转换为ASCII字节数组
+     * @param str 普通字符串
+     * @return ASCII字节数组
+     */
+    public static byte[] stringToAsciiBytes(String str) {
+        if (str == null) return new byte[0];
+        byte[] bytes = new byte[str.length()];
+        for (int i = 0; i < str.length(); i++) {
+            bytes[i] = (byte) str.charAt(i);
+        }
+        return bytes;
+    }
+
 }

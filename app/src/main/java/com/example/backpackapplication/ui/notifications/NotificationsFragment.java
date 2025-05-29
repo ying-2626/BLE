@@ -41,6 +41,7 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.example.backpackapplication.BLEDevice;
 import com.example.backpackapplication.BLEInfoActivity;
+import com.example.backpackapplication.BLERecSendActivity;
 import com.example.backpackapplication.R;
 import com.example.backpackapplication.adapter.LVDevicesAdapter;
 import com.example.backpackapplication.ble.BLEManager;
@@ -119,6 +120,7 @@ public class NotificationsFragment extends Fragment {
         lvDevices.setOnItemClickListener((parent, view, position, id) -> {
             BLEDevice device = (BLEDevice) adapter.getItem(position);
             Intent intent = new Intent(getActivity(), BLEInfoActivity.class);
+            //Intent intent = new Intent(getActivity(), BLERecSendActivity.class);
             intent.putExtra("BLE_DEVICE", device);
             startActivity(intent);
         });

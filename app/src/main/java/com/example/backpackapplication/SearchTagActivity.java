@@ -118,11 +118,17 @@ public class SearchTagActivity extends AppCompatActivity implements TagItemAdapt
             binding.tagRecyclerView.setVisibility(View.GONE);
             return;
         }
-        else{
-        adapter.updateData(tags);
+        // 可根据需求筛选“仅在包内”或“所有激活过的标签”
+        // 例如：仅显示在包内的标签
+        List<RfidTag> inBackpack = new java.util.ArrayList<>();
+        for (RfidTag tag : tags) {
+            if (tag.getRfidTagStatus() == 1) { // 1=在包内
+                inBackpack.add(tag);
+            }
+        }
+        adapter.updateData(inBackpack);
         binding.emptyView.setVisibility(View.GONE);
         binding.tagRecyclerView.setVisibility(View.VISIBLE);
-        }
     }
 
     // 新增标签对话框（带输入校验）

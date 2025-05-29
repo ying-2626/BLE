@@ -60,6 +60,10 @@
             android:name=".BLEInfoActivity"
             android:label="设备详情"
             android:theme="@style/Theme.AppCompat.Light.DarkActionBar" />
+        <activity
+            android:name=".BLERecSendActivity"
+            android:label="蓝牙设备详情"
+            android:theme="@style/Theme.AppCompat.Light.DarkActionBar" />
     </application>
 
 </manifest>

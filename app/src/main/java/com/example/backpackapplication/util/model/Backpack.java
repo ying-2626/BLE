@@ -14,6 +14,7 @@ public class Backpack {
         private int rfidTagNum;
         private String userId;
 
+
         // Getters
         public String getBackpackId() { return backpackId; }
         public String getBackpackName() { return backpackName; }
@@ -27,6 +28,7 @@ public class Backpack {
     public String getDeleteTime(){return deleteTime;}
     public String getLocation(){return location;}
     public int getNetworkStatus(){return networkStatus;}
+
 
 }
 

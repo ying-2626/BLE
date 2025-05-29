@@ -10,7 +10,9 @@ import android.bluetooth.BluetoothGattService;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -29,6 +31,9 @@ public class BLEInfoActivity extends AppCompatActivity {
     private BLEManager bleManager;
     private BLEDevice bleDevice;
     private BluetoothGatt currentGatt;
+    private EditText etSendMsg;
+    private Button btnSend;
+    private TextView tvMsgResult;
 
     // 定义全局监听器实例
     private final OnBleConnectListener globalConnectListener = new OnBleConnectListener() {
@@ -72,10 +77,20 @@ public class BLEInfoActivity extends AppCompatActivity {
             }
         }
         @Override public void onServiceDiscoveryFailed(BluetoothGatt gatt, BluetoothDevice device, String failMsg) {}
-        @Override public void onReceiveMessage(BluetoothGatt gatt, BluetoothDevice device, BluetoothGattCharacteristic characteristic, byte[] msg) {}
-        @Override public void onReceiveError(String errorMsg) {}
-        @Override public void onWriteSuccess(BluetoothGatt gatt, BluetoothDevice device, byte[] msg) {}
-        @Override public void onWriteFailure(BluetoothGatt gatt, BluetoothDevice device, byte[] msg, String errorMsg) {}
+        @Override public void onReceiveMessage(BluetoothGatt gatt, BluetoothDevice device, BluetoothGattCharacteristic characteristic, byte[] msg) {
+            // 直接以字符串显示
+            String strMsg = new String(msg);
+            runOnUiThread(() -> tvMsgResult.setText("接收成功: " + strMsg));
+        }
+        @Override public void onReceiveError(String errorMsg) {
+            runOnUiThread(() -> tvMsgResult.setText("接收失败: " + errorMsg));
+        }
+        @Override public void onWriteSuccess(BluetoothGatt gatt, BluetoothDevice device, byte[] msg) {
+            runOnUiThread(() -> tvMsgResult.setText("发送成功: " + new String(msg)));
+        }
+        @Override public void onWriteFailure(BluetoothGatt gatt, BluetoothDevice device, byte[] msg, String errorMsg) {
+            runOnUiThread(() -> tvMsgResult.setText("发送失败: " + errorMsg));
+        }
         @Override public void onReadRssi(BluetoothGatt gatt, int Rssi, int status) {}
         @Override public void onMTUSetSuccess(String successMTU, int newMtu) {}
         @Override public void onMTUSetFailure(String failMTU) {}
@@ -93,6 +108,7 @@ public class BLEInfoActivity extends AppCompatActivity {
         //初始化时检查连接状态
         refreshButtonState();
         setupConnectButton();
+        setupSendButton(); // 新增
     }
 
     @Override
@@ -121,6 +137,10 @@ public class BLEInfoActivity extends AppCompatActivity {
         tvUuid = findViewById(R.id.tv_uuid);
         tvDeviceType = findViewById(R.id.tv_device_type);
         btnConnect = findViewById(R.id.btn_connect);
+        // 新增
+        etSendMsg = findViewById(R.id.et_send_msg);
+        btnSend = findViewById(R.id.btn_send);
+        tvMsgResult = findViewById(R.id.tv_msg_result);
     }
 
     private void setupBLEManager() {
@@ -152,7 +172,7 @@ public class BLEInfoActivity extends AppCompatActivity {
             tvDeviceName.setText(device.getName() != null ? device.getName() : "未知设备");
             tvMacAddress.setText("MAC地址:\n       " + device.getAddress());
             tvRssi.setText("信号强度:\n       " + bleDevice.getRSSI() + " dBm");
-            tvUuid.setText("服务UUID:\n       " + bleDevice.getServiceUuids());
+            tvUuid.setText("服务UUID:\n       " +getUuidInfo());
             tvDeviceType.setText("设备类型:\n       " + parseDeviceType(device.getType()));
         }catch (SecurityException e)
         {}
@@ -234,6 +254,30 @@ public class BLEInfoActivity extends AppCompatActivity {
             }catch (SecurityException e)
             {}
         }).start();
+    }
+
+    // 新增：发送按钮逻辑
+    private void setupSendButton() {
+        btnSend.setOnClickListener(v -> {
+            if (!bleManager.isConnected()) {
+                Toast.makeText(this, "请先连接设备", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            String msg = etSendMsg.getText().toString();
+             if (msg.isEmpty()) {
+               Toast.makeText(this, "发送内容不能为空", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            boolean result = false;
+            try {
+                result = bleManager.sendMessage(msg);
+                 } catch (SecurityException e) {
+                  tvMsgResult.setText("发送异常: " + e.getMessage());
+            }
+            if (!result) {
+                tvMsgResult.setText("发送失败: 蓝牙未连接或特征无效");
+            }
+        });
     }
 
     @Override

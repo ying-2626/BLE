@@ -47,6 +47,10 @@ import com.example.backpackapplication.util.TypeConversion;
  */
 public class BLEManager  {
     private static final String TAG = "BLEManager";
+    // 新增Nordic UART服务和特征UUID
+    private static final UUID SERVICE_UUID = UUID.fromString("6e400001-b5a3-f393-e0a9-e50e24dcca9e");
+    private static final UUID CHARACTERISTIC_UUID_RX = UUID.fromString("6e400002-b5a3-f393-e0a9-e50e24dcca9e"); // 写
+    private static final UUID CHARACTERISTIC_UUID_TX = UUID.fromString("6e400003-b5a3-f393-e0a9-e50e24dcca9e"); // 读/notify
     // 添加单例模式
     private static BLEManager instance;
 
@@ -446,25 +450,31 @@ try {
         @Override
         public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
             super.onCharacteristicWrite(gatt, characteristic, status);
-
-            if(characteristic.getValue() == null){
-                Log.e(TAG,"characteristic.getValue() == null");
+            // 1. 仅处理目标写特征的回调
+            if (!characteristic.getUuid().equals(CHARACTERISTIC_UUID_RX)) {
+                Log.d(TAG, "忽略非目标特征的回调: " + characteristic.getUuid());
                 return;
             }
-            //将收到的字节数组转换成十六进制字符串
-            String msg = TypeConversion.bytes2HexString(characteristic.getValue(),characteristic.getValue().length);
+            // 2. 处理可能的空值
+            byte[] value = characteristic.getValue();
+            if(value == null){
+                Log.e(TAG,"characteristic.getValue() == null，可能原因：setValue未调用或被系统清空");
+                // 这里建议直接 return，避免后续空指针
+                return;
+            }
+            // 将收到的字节数组转换成十六进制字符串
+            String msg = TypeConversion.bytes2HexString(value, value.length);
             if(status == BluetoothGatt.GATT_SUCCESS){
                 //写入成功
                 Log.w(TAG,"写入成功：" + msg);
                 if(onBleConnectListener != null){
-                    onBleConnectListener.onWriteSuccess(gatt,gatt.getDevice(),characteristic.getValue());  //写入成功回调
+                    onBleConnectListener.onWriteSuccess(gatt,gatt.getDevice(),value);  //写入成功回调
                 }
-
             }else if(status == BluetoothGatt.GATT_FAILURE){
                 //写入失败
                 Log.e(TAG,"写入失败：" + msg);
                 if(onBleConnectListener != null){
-                    onBleConnectListener.onWriteFailure(gatt,gatt.getDevice(),characteristic.getValue(),"写入失败");  //写入失败回调
+                    onBleConnectListener.onWriteFailure(gatt,gatt.getDevice(),value,"写入失败");  //写入失败回调
                 }
             }else if(status == BluetoothGatt.GATT_WRITE_NOT_PERMITTED){
                 //没有权限
@@ -479,7 +489,10 @@ try {
 
             //接收数据
             byte[] bytes = characteristic.getValue();
-            Log.w("TAG","收到数据str:" + TypeConversion.bytes2HexString(bytes,bytes.length));
+            // 直接以字符串显示收到的数据
+            String strMsg = new String(bytes);
+            Log.w("BLE-Receive", "收到蓝牙消息: " + strMsg);
+
             if(onBleConnectListener != null){
                 onBleConnectListener.onReceiveMessage(gatt,gatt.getDevice(),characteristic,characteristic.getValue());  //接收数据回调
             }
@@ -654,34 +667,50 @@ try {
         readCharacteristic = null;
         writeCharacteristic = null;
 
-        // 遍历所有服务
-        for (BluetoothGattService service : bluetoothGatt.getServices()) {
-            // 遍历服务中的特征
-            for (BluetoothGattCharacteristic characteristic : service.getCharacteristics()) {
-                int properties = characteristic.getProperties();
+        // 优先根据UUID精确匹配Nordic UART服务和特征
+        BluetoothGattService uartService = bluetoothGatt.getService(SERVICE_UUID);
+        if (uartService != null) {
+            BluetoothGattCharacteristic txChar = uartService.getCharacteristic(CHARACTERISTIC_UUID_TX);
+            BluetoothGattCharacteristic rxChar = uartService.getCharacteristic(CHARACTERISTIC_UUID_RX);
+            if (txChar != null) {
+                readCharacteristic = txChar;
+                enableNotification(true, bluetoothGatt, readCharacteristic);
+            }
+            if (rxChar != null) {
+                writeCharacteristic = rxChar;
+            }
+        }
+/*
+        // 若未找到，再用原有遍历方式兜底
+        if (readCharacteristic == null || writeCharacteristic == null) {
+            for (BluetoothGattService service : bluetoothGatt.getServices()) {
+                for (BluetoothGattCharacteristic characteristic : service.getCharacteristics()) {
+                    int properties = characteristic.getProperties();
 
-                // 识别读特征（支持NOTIFY或READ）
-                if ((properties & BluetoothGattCharacteristic.PROPERTY_NOTIFY) != 0) {
-                    if (readCharacteristic == null) {
-                        readCharacteristic = characteristic;
-                        enableNotification(true, bluetoothGatt, readCharacteristic); // 启用通知
+                    // 识别读特征（支持NOTIFY或READ）
+                    if ((properties & BluetoothGattCharacteristic.PROPERTY_NOTIFY) != 0) {
+                        if (readCharacteristic == null) {
+                            readCharacteristic = characteristic;
+                            enableNotification(true, bluetoothGatt, readCharacteristic); // 启用通知
+                        }
                     }
-                }
-                else if ((properties & BluetoothGattCharacteristic.PROPERTY_READ) != 0) {
-                    if (readCharacteristic == null) {
-                        readCharacteristic = characteristic;
+                    else if ((properties & BluetoothGattCharacteristic.PROPERTY_READ) != 0) {
+                        if (readCharacteristic == null) {
+                            readCharacteristic = characteristic;
+                        }
                     }
-                }
 
-                // 识别写特征（支持WRITE或WRITE_NO_RESPONSE）
-                if ((properties & (BluetoothGattCharacteristic.PROPERTY_WRITE |
-                        BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE)) != 0) {
-                    if (writeCharacteristic == null) {
-                        writeCharacteristic = characteristic;
+                    // 识别写特征（支持WRITE或WRITE_NO_RESPONSE）
+                    if ((properties & (BluetoothGattCharacteristic.PROPERTY_WRITE |
+                            BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE)) != 0) {
+                        if (writeCharacteristic == null) {
+                            writeCharacteristic = characteristic;
+                        }
                     }
                 }
             }
         }
+        */
 
         // 检查特征是否找到
         if (readCharacteristic == null) {
@@ -707,10 +736,8 @@ try {
         mHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
-
             }
         }, 2000);
-
         return true;
 
     }
@@ -736,7 +763,7 @@ try {
         }
         // 1. 启用特征通知（系统层）
         gatt.setCharacteristicNotification(characteristic,enable);
-        // 2. 配置描述符（关键步骤）
+        // 2. 配置描述符
         BluetoothGattDescriptor descriptor = characteristic.getDescriptor(
                 UUID.fromString("00002902-0000-1000-8000-00805f9b34fb") // 标准CCCD UUID
         );
@@ -765,18 +792,20 @@ try {
     @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
     public boolean sendMessage(String msg){
+        // 使用ASCII编码发送字符串
+        byte[] asciiBytes = com.example.backpackapplication.util.TypeConversion.stringToAsciiBytes(msg);
+        boolean b = writeCharacteristic.setValue(asciiBytes);
+        Log.d(TAG, "写特征设置值结果：" + b + "，原始内容: " + msg);
+
         if(writeCharacteristic == null){
             Log.e(TAG,"sendMessage(byte[])-->writeGattCharacteristic == null");
             return false;
         }
-
         if(mBluetoothGatt == null){
             Log.e(TAG,"sendMessage(byte[])-->mBluetoothGatt == null");
             return false;
         }
 
-        boolean  b = writeCharacteristic.setValue(TypeConversion.hexString2Bytes(msg));
-        Log.d(TAG, "写特征设置值结果：" + b);
         return mBluetoothGatt.writeCharacteristic(writeCharacteristic);
     }
 
@@ -878,4 +907,3 @@ try {
         return bluetooth4Adapter.isDiscovering();
     }
 }
-

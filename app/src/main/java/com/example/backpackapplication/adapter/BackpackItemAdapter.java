@@ -37,7 +37,10 @@ public class BackpackItemAdapter extends RecyclerView.Adapter<BackpackItemAdapte
         this.data = data;
         this.fragmentRef = new WeakReference<>(fragment);
     }
-
+    // 新增：用于获取当前数据列表
+    public List<Backpack> getData() {
+        return data;
+    }
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
